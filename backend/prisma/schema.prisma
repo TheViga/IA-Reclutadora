@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Job {
+  id          String      @id @default(cuid())
+  title       String
+  description String      @default("")
+  language    String      @default("es")
+  voiceId     String?
+  createdAt   DateTime    @default(now())
+  questions   Question[]
+  interviews  Interview[]
+}
+
+model Question {
+  id         String          @id @default(cuid())
+  jobId      String
+  job        Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  order      Int
+  text       String
+  rubricText String
+  maxScore   Int             @default(5)
+  turns      InterviewTurn[]
+
+  @@unique([jobId, order])
+}
+
+model Candidate {
+  id         String      @id @default(cuid())
+  fullName   String
+  phoneE164  String
+  email      String?
+  notes      String?
+  createdAt  DateTime    @default(now())
+  interviews Interview[]
+}
+
+enum InterviewStatus {
+  scheduled
+  dialing
+  in_progress
+  completed
+  failed
+  no_answer
+}
+
+model Interview {
+  id            String          @id @default(cuid())
+  jobId         String
+  job           Job             @relation(fields: [jobId], references: [id])
+  candidateId   String
+  candidate     Candidate       @relation(fields: [candidateId], references: [id])
+  status        InterviewStatus @default(scheduled)
+  scheduledAt   DateTime
+  startedAt     DateTime?
+  endedAt       DateTime?
+  twilioCallSid String?
+  recordingUrl  String?
+  overallScore  Float?
+  summary       String?
+  createdAt     DateTime        @default(now())
+  turns         InterviewTurn[]
+  events        CallEvent[]
+}
+
+model InterviewTurn {
+  id                    String    @id @default(cuid())
+  interviewId           String
+  interview             Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  questionId            String?
+  question              Question? @relation(fields: [questionId], references: [id])
+  askedAt               DateTime  @default(now())
+  candidateResponseText String?
+  responseAudioUrl      String?
+  score                 Int?
+  scoreJustification    String?
+}
+
+model CallEvent {
+  id          String    @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  ts          DateTime  @default(now())
+  kind        String
+  payload     Json?
+}
