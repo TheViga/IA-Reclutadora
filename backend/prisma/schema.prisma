@@ -8,14 +8,17 @@ datasource db {
 }
 
 model Job {
-  id          String      @id @default(cuid())
-  title       String
-  description String      @default("")
-  language    String      @default("es")
-  voiceId     String?
-  createdAt   DateTime    @default(now())
-  questions   Question[]
-  interviews  Interview[]
+  id                 String      @id @default(cuid())
+  title              String
+  description        String      @default("")
+  companyName        String      @default("")
+  companyDescription String      @default("")
+  salaryRange        String      @default("")
+  language           String      @default("es")
+  voiceId            String?
+  createdAt          DateTime    @default(now())
+  questions          Question[]
+  interviews         Interview[]
 }
 
 model Question {

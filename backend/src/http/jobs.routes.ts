@@ -5,6 +5,9 @@ import { prisma } from '../db/prisma.js';
 const Create = z.object({
   title: z.string().min(1),
   description: z.string().default(''),
+  companyName: z.string().default(''),
+  companyDescription: z.string().default(''),
+  salaryRange: z.string().default(''),
   voiceId: z.string().optional(),
 });
 

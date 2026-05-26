@@ -10,14 +10,11 @@ import { TwilioMediaSocket } from './types.js';
 import { logger } from '../lib/logger.js';
 
 export async function mediaWsRoute(app: FastifyInstance) {
-  app.get('/media', { websocket: true }, (conn, req) => {
-    const url = new URL(req.url ?? '/media', 'http://x');
-    const interviewId = url.searchParams.get('interviewId');
-    if (!interviewId) {
-      conn.socket.close();
-      return;
-    }
+  app.get('/media', { websocket: true }, (conn: any, req) => {
+    const ws = conn.socket ?? conn;
+    logger.info('twilio ws connected');
 
+    let interviewId = '';
     let streamSid = '';
     let onAudio: (b: Buffer) => void = () => {};
     let onClose: () => void = () => {};
@@ -34,25 +31,25 @@ export async function mediaWsRoute(app: FastifyInstance) {
         onClose = cb;
       },
       sendOutboundAudio(buf) {
-        if (streamSid && conn.socket.readyState === conn.socket.OPEN) {
-          conn.socket.send(JSON.stringify(encodeOutboundMedia(streamSid, buf)));
+        if (streamSid && ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify(encodeOutboundMedia(streamSid, buf)));
         }
       },
       sendMark(name) {
-        if (streamSid && conn.socket.readyState === conn.socket.OPEN) {
-          conn.socket.send(JSON.stringify(encodeMark(streamSid, name)));
+        if (streamSid && ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify(encodeMark(streamSid, name)));
         }
       },
       close() {
         try {
-          conn.socket.close();
+          ws.close();
         } catch {
           /* noop */
         }
       },
     };
 
-    conn.socket.on('message', (raw: Buffer) => {
+    ws.on('message', (raw: Buffer) => {
       let msg: TwilioInboundMessage;
       try {
         msg = JSON.parse(raw.toString());
@@ -61,6 +58,13 @@ export async function mediaWsRoute(app: FastifyInstance) {
       }
       if (msg.event === 'start') {
         streamSid = msg.start.streamSid;
+        interviewId = msg.start.customParameters?.interviewId ?? '';
+        logger.info({ interviewId, streamSid }, 'twilio media stream started');
+        if (!interviewId) {
+          logger.error('no interviewId in start event, closing');
+          ws.close();
+          return;
+        }
         session = new InterviewSession(interviewId, socket);
         session.start().catch((err) =>
           logger.error({ err }, 'InterviewSession.start failed'),
@@ -72,8 +76,8 @@ export async function mediaWsRoute(app: FastifyInstance) {
         onClose();
       }
     });
-    conn.socket.on('close', () => onClose());
-    conn.socket.on('error', (err) =>
+    ws.on('close', () => onClose());
+    ws.on('error', (err: Error) =>
       logger.error({ err }, 'twilio ws error'),
     );
   });

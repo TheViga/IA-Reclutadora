@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { config } from '../config.js';
 import { prisma } from '../db/prisma.js';
+import { logger } from '../lib/logger.js';
 
 function escapeXml(s: string) {
   return s.replace(/[<>&'"]/g, (c) => {
@@ -18,13 +19,15 @@ function escapeXml(s: string) {
 export async function twimlRoutes(app: FastifyInstance) {
   app.get('/twiml/answer', async (req, reply) => {
     const { interviewId } = req.query as { interviewId: string };
-    const wsUrl =
-      config.PUBLIC_BASE_URL.replace(/^http/, 'ws') +
-      `/media?interviewId=${encodeURIComponent(interviewId)}`;
+    logger.info({ interviewId }, 'twiml/answer hit');
+    const wsUrl = config.PUBLIC_BASE_URL.replace(/^http/, 'ws') + '/media';
+    logger.info({ wsUrl }, 'twiml wsUrl generated');
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Connect>
-    <Stream url="${escapeXml(wsUrl)}" />
+    <Stream url="${escapeXml(wsUrl)}">
+      <Parameter name="interviewId" value="${escapeXml(interviewId)}" />
+    </Stream>
   </Connect>
 </Response>`;
     reply.type('text/xml').send(xml);

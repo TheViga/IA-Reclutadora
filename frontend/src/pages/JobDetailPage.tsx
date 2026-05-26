@@ -32,6 +32,17 @@ export function JobDetailPage() {
   return (
     <div>
       <h2>{job.title}</h2>
+      {job.companyName && (
+        <p>
+          <strong>Empresa:</strong> {job.companyName}
+        </p>
+      )}
+      {job.companyDescription && <p>{job.companyDescription}</p>}
+      {job.salaryRange && (
+        <p>
+          <strong>Salario:</strong> {job.salaryRange}
+        </p>
+      )}
       <p>{job.description}</p>
 
       <div className="card">

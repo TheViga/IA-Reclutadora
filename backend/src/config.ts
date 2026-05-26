@@ -12,7 +12,7 @@ const Schema = z.object({
   QWEN_API_KEY: z.string().min(1),
   QWEN_BASE_URL: z.string().url(),
   QWEN_MODEL: z.string().default('qwen-plus'),
-  TTS_VOICE_ID: z.string().default('aura-2-celeste-es'),
+  TTS_VOICE_ID: z.string().default('aura-2-carina-es'),
   STT_LANGUAGE: z.string().default('es'),
   STT_MODEL: z.string().default('nova-2'),
 });

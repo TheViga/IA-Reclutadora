@@ -1,6 +1,6 @@
 export type TwilioInboundMessage =
   | { event: 'connected' }
-  | { event: 'start'; start: { streamSid: string; callSid: string } }
+  | { event: 'start'; start: { streamSid: string; callSid: string; customParameters?: Record<string, string> } }
   | { event: 'media'; media: { payload: string } }
   | { event: 'mark'; mark: { name: string } }
   | { event: 'stop' };

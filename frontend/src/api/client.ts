@@ -17,6 +17,9 @@ export interface Job {
   id: string;
   title: string;
   description: string;
+  companyName: string;
+  companyDescription: string;
+  salaryRange: string;
   language: string;
   voiceId: string | null;
   questions?: Question[];
@@ -71,7 +74,14 @@ export const api = {
   jobs: {
     list: () => req<Job[]>('/jobs'),
     get: (id: string) => req<Job>(`/jobs/${id}`),
-    create: (body: { title: string; description?: string; voiceId?: string }) =>
+    create: (body: {
+      title: string;
+      description?: string;
+      companyName?: string;
+      companyDescription?: string;
+      salaryRange?: string;
+      voiceId?: string;
+    }) =>
       req<Job>('/jobs', { method: 'POST', body: JSON.stringify(body) }),
     addQuestion: (
       jobId: string,

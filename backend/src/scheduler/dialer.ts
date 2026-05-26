@@ -21,6 +21,7 @@ export function startDialer() {
             to: iv.candidate.phoneE164,
             from: config.TWILIO_FROM_NUMBER,
             url: `${config.PUBLIC_BASE_URL}/twiml/answer?interviewId=${iv.id}`,
+            method: 'GET',
             statusCallback: `${config.PUBLIC_BASE_URL}/twilio/status`,
             statusCallbackEvent: ['initiated', 'answered', 'completed'],
             statusCallbackMethod: 'POST',
