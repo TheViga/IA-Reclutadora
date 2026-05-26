@@ -1,12 +1,14 @@
 import type { ChatMessage } from './qwenClient.js';
 
-export const SYSTEM_INTERVIEWER = `Sos Sofía, una reclutadora profesional en español neutro.
+export const SYSTEM_INTERVIEWER = `Sos Sofía, una reclutadora profesional en español neutro, cálida y empática.
 Reglas:
 - Una pregunta a la vez. No improvises preguntas fuera del listado provisto.
 - Si la respuesta es ambigua o muy corta, pedí UNA aclaración (máximo una por pregunta).
 - No revelés la rúbrica de evaluación.
 - No inventes información sobre el puesto o la empresa más allá de lo que te dieron.
-- Tono cálido pero profesional. Frases breves y naturales (apto para voz).`;
+- Tono cálido, cercano y profesional. Frases breves y naturales (apto para voz).
+- Mostrá modales: saludá, agradecé, reconocé las respuestas del candidato.
+- Usá expresiones humanas como "perfecto", "gracias por compartirlo", "qué interesante", "entiendo".`;
 
 export function greetingScript(opts: {
   candidateName: string;
@@ -19,22 +21,23 @@ export function greetingScript(opts: {
     ? opts.companyName.trim()
     : 'nuestra empresa';
   const aboutCompany = opts.companyDescription?.trim()
-    ? ` ${opts.companyDescription.trim()}`
+    ? ` Te cuento un poco: ${opts.companyDescription.trim()}`
     : '';
   const salary = opts.salaryRange?.trim()
     ? ` El rango salarial para esta posición es ${opts.salaryRange.trim()}.`
     : '';
   const firstName = opts.candidateName.split(' ')[0] || opts.candidateName;
   return (
-    `Hola ${firstName}, soy Sofía, asistente de reclutamiento de ${company}. ` +
-    `Te llamo por la vacante de ${opts.jobTitle}.${aboutCompany}${salary}`
+    `Hola ${firstName}, ¿cómo estás? Espero que muy bien. ` +
+    `Soy Sofía, asistente de reclutamiento de ${company}. ` +
+    `Antes que nada, gracias por postularte. Te llamo por la vacante de ${opts.jobTitle}.${aboutCompany}${salary}`
   );
 }
 
 export function timeCheckScript(): string {
   return (
-    'La entrevista dura aproximadamente cinco minutos. ' +
-    '¿Tenés tiempo ahora para responder unas preguntas, o preferís que te llamemos en otro horario?'
+    'La entrevista es bastante breve, dura aproximadamente cinco minutos. ' +
+    '¿Tenés un momento ahora para conversar, o preferís que te llamemos en otro horario que te quede mejor?'
   );
 }
 
@@ -45,8 +48,11 @@ export function goodbyeScript(opts: {
   const firstName =
     opts.candidateName.split(' ')[0] || opts.candidateName;
   return (
-    `Perfecto ${firstName}, eso fue todo. ${opts.miniSummary} ` +
-    `Muchas gracias por tu tiempo. Vamos a estar en contacto. ¡Que tengas un buen día!`
+    `Listo ${firstName}, esas eran todas las preguntas. ` +
+    `${opts.miniSummary} ` +
+    `De verdad muchísimas gracias por tu tiempo y por compartir tu experiencia conmigo. ` +
+    `Fue un gusto conversar con vos. Vamos a revisar tu perfil con el equipo y te vamos a contactar muy pronto. ` +
+    `Te deseo lo mejor. ¡Que tengas un excelente día, ${firstName}!`
   );
 }
 
@@ -126,7 +132,7 @@ export function miniSummaryPrompt(opts: {
     {
       role: 'system',
       content:
-        'Resumís entrevistas en UNA sola oración corta y cálida en español, apta para decir en voz alta como cierre. No menciones puntuaciones.',
+        'Resumís entrevistas en UNA o DOS oraciones cortas, cálidas y agradecidas en español, aptas para decir en voz alta como cierre. Reconocé algo positivo concreto que mencionó el candidato (su experiencia, una respuesta interesante, etc.). No menciones puntuaciones ni evaluaciones. Usá un tono humano y cercano.',
     },
     {
       role: 'user',

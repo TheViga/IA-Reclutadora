@@ -137,19 +137,23 @@ export class InterviewSession {
     if (this.phase === 'listening' && !this.reaskedForCurrent) {
       this.reaskedForCurrent = true;
       this.listening = false;
-      this.tts.speak('Disculpá, ¿podés repetir tu respuesta?');
+      this.tts.speak(
+        'Disculpá, no llegué a escucharte bien. ¿Me podés repetir tu respuesta, por favor?',
+      );
       return;
     }
     if (this.phase === 'timeCheck' && !this.timeCheckReasked) {
       this.timeCheckReasked = true;
       this.listening = false;
       this.tts.speak(
-        '¿Estás ahí? Si tenés tiempo ahora, decí sí; si no, decime cuándo prefiriéndolo.',
+        '¿Hola, estás ahí? Si podés conversar ahora decime que sí, o si preferís te llamamos en otro horario.',
       );
       return;
     }
     // give up
-    this.endWithoutInterview('No hubo respuesta. Hasta luego.');
+    this.endWithoutInterview(
+      'Parece que no logramos comunicarnos bien. Te vamos a llamar más tarde. ¡Gracias y hasta pronto!',
+    );
   }
 
   private handleFinalTranscript(text: string) {
@@ -213,11 +217,14 @@ export class InterviewSession {
     }
 
     if (!acceptsNow) {
+      const firstName =
+        this.candidateName.split(' ')[0] || this.candidateName;
       const when = preferredTime
-        ? ` Te llamamos ${preferredTime}.`
-        : ' Te llamamos en otro momento.';
+        ? ` Te vamos a llamar ${preferredTime}, sin problema.`
+        : ' No te preocupes, coordinamos otro horario que te quede mejor y te llamamos.';
       this.endWithoutInterview(
-        `Perfecto, gracias por avisarme.${when} ¡Que tengas un buen día!`,
+        `Entiendo perfectamente, ${firstName}, gracias por avisarme con honestidad.${when} ` +
+          `Que tengas un excelente día. ¡Hasta pronto!`,
       );
       return;
     }
@@ -225,7 +232,8 @@ export class InterviewSession {
     // proceed with questions
     this.phase = 'asking';
     this.tts.speak(
-      `Genial, gracias. Te voy a hacer ${this.questions.length} preguntas breves. Empezamos.`,
+      `¡Genial! Muchas gracias. Te voy a hacer ${this.questions.length} preguntas breves sobre tu experiencia. ` +
+        `Tomate tu tiempo para responder, no hay apuro. Empezamos.`,
     );
     await this.askCurrent();
   }
@@ -348,7 +356,8 @@ export class InterviewSession {
     this.clearNoResponseTimer();
 
     // build mini summary from turns
-    let miniSummary = 'Tus respuestas quedaron registradas para revisión.';
+    let miniSummary =
+      'Me llevo muy buenas impresiones de nuestra conversación y de todo lo que me contaste.';
     try {
       const turns = await prisma.interviewTurn.findMany({
         where: {
